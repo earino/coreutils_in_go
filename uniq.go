@@ -55,12 +55,17 @@ func skip(line string) string {
     return line[i:len(line)]
 }
 
+func usage() {
+    fmt.Println("usage: uniq [-c | -du] [-f fields] [-s chars] [input]\n")
+    os.Exit(1)
+}
+
 func main() {
     flag.Parse()
 
     if *countPtr  {
         if *dupPtr || *uniqPtr {
-            fmt.Println("usage:")
+            usage()
         } 
     } else {
         if ! *dupPtr && ! *uniqPtr {
