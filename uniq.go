@@ -12,7 +12,7 @@ import (
 
 var repeats int = 0
 var countPtr = flag.Bool("c", false, "Generate an output report in default style except that each line is preceded by a count of the number of times it occurred. If this option is specified, the -u and -d options are ignored if either or both are also present.")
-var	ignoreCasePtr = flag.Bool("i", false, "Ignore case differences when comparing lines")
+var ignoreCasePtr = flag.Bool("i", false, "Ignore case differences when comparing lines")
 var uniqPtr = flag.Bool("u", false, "Print only those lines which are not repeated (unique) in the input.")
 var dupPtr = flag.Bool("d", false, "Print only those lines which are repeated in the input.")
 var ignoreFieldsPtr = flag.Int("f", 0, "Ignore a number of fields in a line")
