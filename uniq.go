@@ -1,13 +1,13 @@
 package main
 
 import (
-    "log"
-    "os"
-    "io"
-    "bufio"
-    "strings"
-    "fmt"
-    "flag"
+	"bufio"
+	"flag"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"strings"
 )
 
 var repeats int = 0
@@ -19,112 +19,112 @@ var ignoreFieldsPtr = flag.Int("f", 0, "Ignore a number of fields in a line")
 var ignoreCharsPtr = flag.Int("s", 0, "Ignore the first chars characters in each input line when doing comparisons.")
 
 func show(line string) {
-    if *countPtr && line != "" {
-        fmt.Printf("%4d %s", repeats + 1, line)
-    } else if (*countPtr && repeats > 0) || (*uniqPtr) {
-        fmt.Printf("%s", line)
-    }
+	if *countPtr && line != "" {
+		fmt.Printf("%4d %s", repeats+1, line)
+	} else if (*countPtr && repeats > 0) || (*uniqPtr) {
+		fmt.Printf("%s", line)
+	}
 }
 
 func skip(line string) string {
-    var infield bool = false
-    var nchars, nfields, i int = 0, 0, 0
-    
-    nfields = *ignoreFieldsPtr
+	var infield bool = false
+	var nchars, nfields, i int = 0, 0, 0
 
-    for ; nfields > 0 && i < len(line); i++ {
-        if line[i] == ' ' {
-            if infield {
-                infield = false
-                nfields--
-            }
-        } else if ! infield {
-            infield = true
-        }
-    }
+	nfields = *ignoreFieldsPtr
 
-    line = line[i:len(line)]
+	for ; nfields > 0 && i < len(line); i++ {
+		if line[i] == ' ' {
+			if infield {
+				infield = false
+				nfields--
+			}
+		} else if !infield {
+			infield = true
+		}
+	}
 
-    nchars = *ignoreCharsPtr
-    i = 0
+	line = line[i:len(line)]
 
-    for ; nchars > 0 && i < len(line); i++ {
-        nchars--
-    }
-    
-    return line[i:len(line)]
+	nchars = *ignoreCharsPtr
+	i = 0
+
+	for ; nchars > 0 && i < len(line); i++ {
+		nchars--
+	}
+
+	return line[i:len(line)]
 }
 
 func usage() {
-    fmt.Println("usage: uniq [-c | -du] [-f fields] [-s chars] [input]\n")
-    os.Exit(1)
+	fmt.Println("usage: uniq [-c | -du] [-f fields] [-s chars] [input]\n")
+	os.Exit(1)
 }
 
 func main() {
-    flag.Parse()
+	flag.Parse()
 
-    if *countPtr  {
-        if *dupPtr || *uniqPtr {
-            usage()
-        } 
-    } else {
-        if ! *dupPtr && ! *uniqPtr {
-            *dupPtr = true
-            *uniqPtr = true
-        }
-    }
+	if *countPtr {
+		if *dupPtr || *uniqPtr {
+			usage()
+		}
+	} else {
+		if !*dupPtr && !*uniqPtr {
+			*dupPtr = true
+			*uniqPtr = true
+		}
+	}
 
-    for _, element := range flag.Args() {
-        var r io.Reader
+	for _, element := range flag.Args() {
+		var r io.Reader
 
-        if element ==  "-" {
-            r = os.Stdin
-        } else {
-            var err error
-            r, err = os.Open(element)
-            if err != nil {
-                log.Fatal(err)
-            }
-        }
+		if element == "-" {
+			r = os.Stdin
+		} else {
+			var err error
+			r, err = os.Open(element)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 
-        bufreader := bufio.NewReader(r)
+		bufreader := bufio.NewReader(r)
 
-        var thisline, prevline string
-        var err error
+		var thisline, prevline string
+		var err error
 
-        for {
-            thisline, err = bufreader.ReadString('\n')
+		for {
+			thisline, err = bufreader.ReadString('\n')
 
-            var t1, t2 string
-            if *ignoreFieldsPtr != 0 || *ignoreCharsPtr != 0 {
-                t1 = skip(thisline)
-                t2 = skip(prevline)
-            } else {
-                t1 = thisline
-                t2 = prevline
-            }
+			var t1, t2 string
+			if *ignoreFieldsPtr != 0 || *ignoreCharsPtr != 0 {
+				t1 = skip(thisline)
+				t2 = skip(prevline)
+			} else {
+				t1 = thisline
+				t2 = prevline
+			}
 
-            var cmp bool
+			var cmp bool
 
-            if *ignoreCasePtr {
-                cmp = strings.EqualFold(t1, t2)
-            } else {
-                cmp = t1 == t2
-            }
+			if *ignoreCasePtr {
+				cmp = strings.EqualFold(t1, t2)
+			} else {
+				cmp = t1 == t2
+			}
 
-            if ! cmp {
-                show(prevline)
-                thisline, prevline = prevline, thisline
-                repeats = 0
-            } else {
-                repeats++
-            }
+			if !cmp {
+				show(prevline)
+				thisline, prevline = prevline, thisline
+				repeats = 0
+			} else {
+				repeats++
+			}
 
-            if err == io.EOF {
-                break
-            }       
-        }
+			if err == io.EOF {
+				break
+			}
+		}
 
-        show(prevline)
-    }
+		show(prevline)
+	}
 }
