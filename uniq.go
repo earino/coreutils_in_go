@@ -95,6 +95,12 @@ func main() {
 		for {
 			thisline, err = bufreader.ReadString('\n')
 
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				log.Fatal(err)
+			}
+
 			var t1, t2 string
 			if *ignoreFieldsPtr != 0 || *ignoreCharsPtr != 0 {
 				t1 = skip(thisline)
@@ -120,9 +126,6 @@ func main() {
 				repeats++
 			}
 
-			if err == io.EOF {
-				break
-			}
 		}
 
 		show(prevline)
