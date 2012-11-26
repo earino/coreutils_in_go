@@ -12,32 +12,38 @@ var appendPtr = flag.Bool("a", false, "Append the output to the files rather tha
 var ignoreCasePtr = flag.Bool("i", false, "Ignore the SIGINT signal.")
 
 func main() {
-	var err error
-
 	flag.Parse()
 
-	bufferedStdin := bufio.NewReader(os.Stdin)
-	bufferedStdout := bufio.NewWriter(os.Stdout)
-
-	var writers = []bufio.Writer{*bufferedStdout}
+	var writers = []io.Writer{os.Stdout}
 
 	for _, teeTo := range flag.Args() {
-		var w io.Writer
+		var fileFlags int
+
 		if *appendPtr {
-			w, err = os.OpenFile(teeTo, os.O_CREATE|os.O_APPEND, 0644)
+			fileFlags = os.O_WRONLY|os.O_CREATE|os.O_APPEND
 		} else {
-			w, err = os.OpenFile(teeTo, os.O_CREATE, 0644)
+			fileFlags = os.O_WRONLY|os.O_CREATE|os.O_TRUNC
 		}
+
+		w, err := os.OpenFile(teeTo, fileFlags, 0644)
 
 		if err != nil {
 			log.Fatal(err)
 		}
+		
+		writer := io.Writer(w)
+		bufwriter := bufio.NewWriter(writer)
 
-		bufwriter := bufio.NewWriter(w)
-		writers = append(writers, *bufwriter)
+		defer w.Close()
+		defer bufwriter.Flush()
+
+		writers = append(writers, bufwriter)
 	}
 
-	teeWriter := io.MultiWriter(writers)
+	teeWriter := io.MultiWriter(writers...)
+	bufwriter := bufio.NewWriter(teeWriter)
 
-	io.Copy(teeWriter, bufferedStdin)
+	defer bufwriter.Flush()
+
+	io.Copy(teeWriter, os.Stdin)
 }
